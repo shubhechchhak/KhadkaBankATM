@@ -1,10 +1,13 @@
+import java.awt.*;
+import java.util.Objects;
 import java.util.Scanner;
 public class ATM {
     public void start() {
         Scanner scan = new Scanner(System.in);
-        System.out.println("|---------------------------------------------|");
-        System.out.println("            Welcome to the Bank ATM");
-        System.out.println("|---------------------------------------------|");
+        System.out.println(Colors.PURPLE + "|---------------------------------------------|");
+        System.out.println(Colors.PURPLE + "            Welcome to the Bank ATM");
+        System.out.println(Colors.PURPLE + "|---------------------------------------------|" + Colors.RESET);
+        System.out.println();
         System.out.print("Please enter your name: ");
         String name = scan.nextLine();
         System.out.print("Please create a PIN: ");
@@ -12,150 +15,134 @@ public class ATM {
         Customer customer = new Customer(name, pin);
         Account checkingAcc = new Account(customer);
         Account savingsAcc = new Account(customer);
-        System.out.print("Enter your pin: ");
+        TransactionHistory history = new TransactionHistory();
+        System.out.print("Enter your PIN: ");
         int enteredPin = scan.nextInt();
         while (enteredPin != customer.getPin()) {
-            System.out.println("The pin you entered is incorrect! Please try again!");
-            System.out.print("Enter your pin: ");
+            System.out.println(Colors.RED + "The pin you entered is incorrect! Please try again!" + Colors.RESET);
+            System.out.print("Enter your PIN: ");
             enteredPin = scan.nextInt();
         }
         int option;
         int more = 1;
         while (more == 1) {
+            System.out.println();
             mainMenu();
+            System.out.println();
             System.out.print("Pick an option: ");
             option = scan.nextInt();
+            System.out.println();
             if (option == 1) {
-                System.out.println("Which account do you choose to withdraw from?: ");
-                String account = scan.nextLine().toLowerCase();
-                System.out.println("Enter the amount you would like to withdraw: ");
+                System.out.print("Which account do you choose to withdraw from? (s = 1 or c = 2): ");
+                int account = scan.nextInt();
+                System.out.print("Enter the amount you would like to withdraw: ");
                 int amount = scan.nextInt();
                 while (amount % 5 != 0) {
-                    System.out.println("You must enter a valid amount! Only multiples of 5 are allowed!");
+                    System.out.println(Colors.RED + "You must enter a valid amount! Only multiples of 5 are allowed!" + Colors.RESET);
                     System.out.print("Enter the amount you want to withdraw: ");
                     amount = scan.nextInt();
                 }
-                if (account.equals("s")) {
+                if (account == 1) {
                     if (amount > savingsAcc.getMoney()) {
-
+                        System.out.println(Colors.RED + "Insufficient funds! You do not have enough money for this withdrawal" + Colors.RESET);
+                        history.addToHistory("Withdrew money from savings account", false);
+                    } else {
+                        System.out.print("How many twenties would you like to receive: ");
+                        int twenties = scan.nextInt();
+                        System.out.print("How many fives would you like to receive: ");
+                        int fives = scan.nextInt();
+                        System.out.println(Colors.GREEN + "You have received " + twenties + " twenties and " + fives + " fives!");
+                        System.out.println(Colors.GREEN + "Transaction complete!" + Colors.RESET);
+                        history.addToHistory("Withdrew money from savings account", true);
+                    }
+                } else {
+                    if (amount > checkingAcc.getMoney()) {
+                        System.out.println(Colors.RED + "Insufficient funds! You do not have enough money for this withdrawal" + Colors.RESET);
+                        history.addToHistory("Withdrew money from checking account", false);
+                    } else {
+                        System.out.print("How many twenties would you like to receive: ");
+                        int twenties = scan.nextInt();
+                        System.out.print("How many fives would you like to receive: ");
+                        int fives = scan.nextInt();
+                        System.out.println(Colors.GREEN + "You have received " + twenties + " twenties and " + fives + " fives!");
+                        System.out.println(Colors.GREEN + "Transaction complete!" + Colors.RESET);
+                        history.addToHistory("Withdrew money from checking account", true);
                     }
                 }
-                System.out.print("Do you want to do anything else (1 = yes, 2 = no): ");
-                more = scan.nextInt();
             } else if (option == 2) {
-                depositMoney();
-                System.out.print("Do you want to do anything else (1 = yes or 2 = no): ");
-                more = scan.nextInt();
-                if (more == 1) {
-                    mainMenu();
-                    System.out.print("Pick an option (1-7): ");
-                    option = scan.nextInt();
+                System.out.print("Which account do you choose to deposit to? (s = 1 or c = 2): ");
+                int account = scan.nextInt();
+                System.out.print("Enter the amount you would like to deposit: ");
+                double amount = scan.nextDouble();
+                if (account == 1) {
+                    savingsAcc.addMoney(amount);
+                    history.addToHistory("Deposited money into savings account", true);
                 } else {
-                    System.out.println();
-                    System.out.println("Thank you for using the ATM! Goodbye!");
+                    checkingAcc.addMoney(amount);
+                    history.addToHistory("Deposited money into checking account", true);
                 }
+                System.out.println(Colors.GREEN + "Transaction complete!" + Colors.RESET);
             } else if (option == 3) {
+                System.out.print("Pick an account to transfer from (s = 1 or c = 2): ");
+                int account = scan.nextInt();
                 System.out.print("Enter the amount you want to transfer: ");
-                int amount = scan.nextInt();
-                transferMoney(savingsAcc, checkingAcc, amount);
-                System.out.print("Do you want to do anything else (y or n): ");
-                more = scan.nextInt();
-                if (more == 1) {
-                    System.out.print("Pick an option (1-7): ");
-                    option = scan.nextInt();
+                double amount = scan.nextInt();
+                if (account == 1) {
+                    if (amount > savingsAcc.getMoney()) {
+                        System.out.println(Colors.RED + "Insufficient funds! You do not have enough money in your savings" + Colors.RESET);
+                        history.addToHistory("Transferred money from savings account into checking account", false);
+                    } else {
+                        savingsAcc.subtractMoney(amount);
+                        checkingAcc.addMoney(amount);
+                        history.addToHistory("Transferred money from savings account into checking account", true);
+                        System.out.println(Colors.GREEN + "Transaction complete!" + Colors.RESET);
+                    }
                 } else {
-                    System.out.println("Thank you for using the ATM! Goodbye!");
+                    if (amount > checkingAcc.getMoney()) {
+                        System.out.println(Colors.RED + "Insufficient funds! You do not have enough money in your checking" + Colors.RESET);
+                        history.addToHistory("Transferred money from checking account into savings account", false);
+                    } else {
+                        checkingAcc.subtractMoney(amount);
+                        savingsAcc.addMoney(amount);
+                        history.addToHistory("Transferred money from checking account into savings account", true);
+                        System.out.println(Colors.GREEN + "Transaction complete!" + Colors.RESET);
+                    }
                 }
             } else if (option == 4) {
-
+                System.out.println(Colors.BLUE + "Your account balances:\nSavings account: " + savingsAcc.getMoney() + "\nChecking account: " + checkingAcc.getMoney() + Colors.RESET);
+                history.addToHistory("Checked account balances", true);
             } else if (option == 5) {
-
+                System.out.println(Colors.YELLOW + history.printInfo() + Colors.RESET);
+                history.addToHistory("Checked transaction history", true);
             } else if (option == 6) {
-
+                System.out.print("Enter a new PIN: ");
+                int newPIN = scan.nextInt();
+                customer.setPin(newPIN);
+                System.out.println(Colors.GREEN + "PIN successfully changed!" + Colors.RESET);
+                history.addToHistory("Changed PIN", true);
+                System.out.print("Enter your PIN: ");
+                enteredPin = scan.nextInt();
+                while (enteredPin != customer.getPin()) {
+                    System.out.println("The pin you entered is incorrect! Please try again!");
+                    System.out.print("Enter your PIN: ");
+                    enteredPin = scan.nextInt();
+                }
+            } else if (option == 7) {
+                more = 2;
             }
         }
+        System.out.println(Colors.PURPLE + "Thank you for using the ATM! Have a nice day!" + Colors.RESET);
     }
 
     //main menu
     public void mainMenu() {
-        System.out.println("Main Menu:");
-        System.out.println("1. Withdraw money");
-        System.out.println("2. Deposit money");
-        System.out.println("3. Transfer money between accounts");
-        System.out.println("4. Get account balances");
-        System.out.println("5. Get transaction history");
-        System.out.println("6. Change pin");
-        System.out.println("7. Exit");
-    }
-
-    //withdrawing Money
-    public void withdrawMoney() {
-        System.out.print("Enter the amount you want to withdraw: ");
-        int amount = scan.nextInt();
-        scan.nextLine();
-        if (!(amount % 5 == 0)){
-            System.out.println("You must enter a valid amount! Only multiples of 5 are allowed!");
-            System.out.print("Enter the amount you want to withdraw: ");
-            amount = scan.nextInt();
-            scan.nextLine();
-        }
-        System.out.println("Pick an account:");
-        System.out.println("1. Checking");
-        System.out.println("2. Savings");
-        int choice = scan.nextInt();
-        if (choice == 1) {
-            if (amount > checkingAcc.getMoney()) {
-                System.out.println("Insufficient funds! You do not have enough money for this withdrawal");
-            } else {
-                System.out.print("How many $20 bills do you want: ");
-                int bigBills = scan.nextInt();
-                System.out.print("How many $5 bills do you want: ");
-                int smallBills = scan.nextInt();
-                checkingAcc.subtractMoney(amount);
-                System.out.println("Withdrew $" + amount + " from checking account!");
-                System.out.println("You have received " + bigBills + " \"$20 bills\" and " + smallBills + " \"$5 bills\"!");
-            }
-        } else if (choice == 2) {
-            if (amount > savingsAcc.getMoney()) {
-                System.out.println("Insufficient funds! You do not have enough money for this withdrawal");
-            } else {
-                System.out.print("How many $20 bills do you want: ");
-                int bigBills = scan.nextInt();
-                System.out.print("How many $5 bills do you want: ");
-                int smallBills = scan.nextInt();
-                savingsAcc.subtractMoney(amount);
-                System.out.println("Withdrew $" + amount + " from checking account!");
-                System.out.println("You have received " + bigBills + " \"$20 bills and\" " + smallBills + " $5 bills!");
-            }
-        }
-    }
-
-    //depositing money
-    public void depositMoney() {
-        System.out.println("Enter the amount you want to deposit:");
-        int amount = scan.nextInt();
-        System.out.println("Pick an account:");
-        System.out.println("1. Checking");
-        System.out.println("2. Savings");
-        int choice = scan.nextInt();
-        if (choice == 1) {
-            checkingAcc.addMoney(amount);
-            System.out.println("Deposited $" + amount + " into checking account! ");
-        } else if (choice == 2) {
-            savingsAcc.addMoney(amount);
-            System.out.println("Deposited $" + amount + " into savings account!");
-        }
-    }
-
-    //transferring money
-    public void transferMoney(Account accFrom, Account accTo, int amount) {
-        accFrom.subtractMoney(amount);
-        accTo.addMoney(amount);
-    }
-
-    //updating pin
-    public void updatePin(int newPin) {
-        pin = newPin;
-        System.out.println("Changed pin!");
+        System.out.println(Colors.CYAN + "Main Menu:");
+        System.out.println(Colors.CYAN +"1. Withdraw money");
+        System.out.println(Colors.CYAN +"2. Deposit money");
+        System.out.println(Colors.CYAN +"3. Transfer money between accounts");
+        System.out.println(Colors.CYAN +"4. Get account balances");
+        System.out.println(Colors.CYAN +"5. Get transaction history");
+        System.out.println(Colors.CYAN +"6. Change pin");
+        System.out.println(Colors.CYAN +"7. Exit" + Colors.RESET);
     }
 }

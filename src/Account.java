@@ -7,15 +7,18 @@ public class Account {
         money = 0;
     }
 
+    //returns account balance
     public double getMoney() {
         return money;
     }
 
-    public void subtractMoney(int amount) {
+    //used during withdrawals and transfers
+    public void subtractMoney(double amount) {
         money -= amount;
     }
 
-    public void addMoney(int amount) {
+    //used during deposits and transfers
+    public void addMoney(double amount) {
         money += amount;
     }
 
