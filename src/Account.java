@@ -1,12 +1,23 @@
 public class Account {
-    private int money;
-    //depositing money
-    public void deposit(int newMoney) {
-        money += newMoney;
+    private Customer customer;
+    private double money;
+
+    public Account(Customer customer) {
+        this.customer = customer;
+        money = 0;
     }
-    //withdrawing money
-    public void withdraw(int newMoney) {
-        money -= newMoney;
+
+    public double getMoney() {
+        return money;
     }
-    //
+
+    public void subtractMoney(int amount) {
+        money -= amount;
+    }
+
+    public void addMoney(int amount) {
+        money += amount;
+    }
+
+
 }

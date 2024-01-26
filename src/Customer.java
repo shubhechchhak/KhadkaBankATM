@@ -6,10 +6,6 @@ public class Customer {
         this.name = name;
         this.pin = pin;
     }
-    // getter method for name
-    public String getName() {
-        return name;
-    }
     //getter method for pin
     public int getPin() {
         return pin;
